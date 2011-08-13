@@ -44,7 +44,7 @@ rule
      | ELSE        { result = Node.new( "ELSE", "ELSE", nil, nil ) }
      | '^' '(' ags ')' '(' exp ')' { result = Node.new( val[2], "LMB", val[5], nil ) }
      | COND '(' cds ')' { result = Node.new( val[2], "CND", nil, nil ) }
-     | PRINT '(' exp ')' { result = Node.new( nil, "PNT", val[2], nil ) }
+     | PRINT '(' pms ')' { result = Node.new( nil, "PNT", val[2], nil ) }
      | CONS '(' exp ',' exp ')' { result = Node.new( nil, "CONS", val[2], val[4] ) }
      | CAR '(' exp ')' { result = Node.new( nil, "CAR", val[2], nil ) }
      | CDR '(' exp ')' { result = Node.new( nil, "CDR", val[2], nil ) }
@@ -260,7 +260,7 @@ class Node
         end
       when "CND"
         @page.each { |item|
-          if item.getPage.calc(var) == false
+          if item.getPage.calc(var) != false
             return item.getLeft.calc(var)
           end
         }
@@ -275,7 +275,9 @@ class Node
         }
         return closure.run( lvar )
       when "PNT"
-        printObject( @left.calc(var) )
+        @left.getPage.each { |item|
+          printObject( item.calc(var) )
+        }
         return nil
       when "CONS"
         return Pair.new( @left.calc(var), @right.calc(var) )
