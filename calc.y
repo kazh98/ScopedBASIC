@@ -237,17 +237,17 @@ class Node
             end
             return left + right
           when "LT"
-            return @left.calc(var) < @right.calc(var)
+            return ( @left.calc(var) < @right.calc(var) ? true : false )
           when "LE"
-            return @left.calc(var) <= @right.calc(var)
+            return ( @left.calc(var) <= @right.calc(var) ? true : false )
           when "GT"
-            return @left.calc(var) > @right.calc(var)
+            return ( @left.calc(var) > @right.calc(var) ? true : false )
           when "GE"
-            return @left.calc(var) >= @right.calc(var)
+            return ( @left.calc(var) >= @right.calc(var) ? true : false )
           when "EQ"
-            return @left.calc(var) == @right.calc(var)
+            return ( @left.calc(var) == @right.calc(var) ? true : false )
           when "NE"
-            return @left.calc(var) != @right.calc(var)
+            return ( @left.calc(var) != @right.calc(var) ? true : false )
           when "INV"
             return -@left.calc(var)
           when "CST"
@@ -260,7 +260,7 @@ class Node
         end
       when "CND"
         @page.each { |item|
-          if item.getPage.calc(var)
+          if item.getPage.calc(var) == false
             return item.getLeft.calc(var)
           end
         }
@@ -286,7 +286,7 @@ class Node
       when "ATOM"
         case @left.calc(var)
           when Pair, nil
-            return nil
+            return false
           else
             return true
         end
@@ -295,7 +295,7 @@ class Node
           when Pair, nil
             return true
           else
-            return nil
+            return false
         end
       when "LIST"
         res = nil
@@ -376,7 +376,7 @@ end
 ---- footer
 
 parser = Calcp.new
-vartbl = [ { } ]
+vartbl = [ { "true" => true, "false" => false } ]
 while true
   print 'alish> '
   str = gets.chop!
