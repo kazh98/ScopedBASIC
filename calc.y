@@ -44,7 +44,13 @@ rule
      | ELSE        { result = Node.new( "ELSE", "ELSE", nil, nil ) }
      | '^' '(' ags ')' '(' exp ')' { result = Node.new( val[2], "LMB", val[5], nil ) }
      | COND '(' cds ')' { result = Node.new( val[2], "CND", nil, nil ) }
-     | PRINT '(' target ')' { result = Node.new( nil, "PNT", val[2], nil ) }
+     | PRINT '(' exp ')' { result = Node.new( nil, "PNT", val[2], nil ) }
+     | CONS '(' exp ',' exp ')' { result = Node.new( nil, "CONS", val[2], val[4] ) }
+     | CAR '(' exp ')' { result = Node.new( nil, "CAR", val[2], nil ) }
+     | CDR '(' exp ')' { result = Node.new( nil, "CDR", val[2], nil ) }
+     | ATOM '(' exp ')' { result = Node.new( nil, "ATOM", val[2], nil ) }
+     | PAIR '(' exp ')' { result = Node.new( nil, "PAIR", val[2], nil ) }
+     | LIST '(' pms ')' { result = Node.new( nil, "LIST", val[2], nil ) }
   cds:             { result = [ ] }
      | cnd         { result = [ val[0] ] }
      | cds cnd     { result = val[0] << val[1] }
@@ -63,6 +69,35 @@ end
 ---- header
 # $Id: calc.y,v 1.4 2005/11/20 13:29:32 aamine Exp $
 
+def printList( pair )
+  printObject( pair.car )
+  cdr = pair.cdr
+  case cdr
+    when NilClass
+    when Pair
+      print " "
+      printList( cdr )
+    else
+      print " . "
+      printObject( cdr )
+  end
+end
+
+def printObject( obj )
+  case obj
+    when NilClass
+      print "()"
+    when Pair
+      print "("
+      printList( obj )
+      print ")"
+    when Closure
+      print "#<#closure #f>"
+    else
+      print obj
+  end
+end
+
 def getVariableValue( name, var = [ { } ] )
   var.reverse_each { |item|
     if item.has_key?(name)
@@ -76,6 +111,21 @@ def formatString( str )
   str.gsub!( /\\n/, "\n" )
 
   return str
+end
+
+class Pair
+  def initialize( car, cdr )
+    @car = car
+    @cdr = cdr
+  end
+
+  def car
+    return @car
+  end
+
+  def cdr
+    return @cdr
+  end
 end
 
 class Closure
@@ -138,7 +188,7 @@ class Node
       when "CONDITION"
         print indent + "+" + "[ITEM] (" + @type + ")\n"
         @page.draw( indent + suffix, @left || @right )
-      when "PNT"
+      when "PNT", "CAR", "CDR", "CONS", "ATOM", "PAIR", "LIST"
         print indent + "+[EMBED]" + " (" + @type + ")\n"
       else
         print indent + "+" + @page + " (" + @type + ")\n"
@@ -225,12 +275,34 @@ class Node
         }
         return closure.run( lvar )
       when "PNT"
-        if @left.class == Closure
-          print "#<#closure #f>\n"
-        else
-          print @left.calc( var )
-        end
+        printObject( @left.calc(var) )
         return nil
+      when "CONS"
+        return Pair.new( @left.calc(var), @right.calc(var) )
+      when "CAR"
+        return @left.calc(var).car
+      when "CDR"
+        return @left.calc(var).cdr
+      when "ATOM"
+        case @left.calc(var)
+          when Pair, nil
+            return nil
+          else
+            return true
+        end
+      when "PAIR"
+        case @left.calc(var)
+          when Pair, nil
+            return true
+          else
+            return nil
+        end
+      when "LIST"
+        res = nil
+        @left.getPage.reverse_each { |item|
+          res = Pair.new( item.calc(var), res )
+        }
+        return res
       when "NOP"
         return nil
       when "VAR"
@@ -263,6 +335,18 @@ end
           @q.push [:ELSE, $&]
         when /\Aprint/
           @q.push [:PRINT, $&]
+        when /\Acons/
+          @q.push [:CONS, $&]
+        when /\Acar/
+          @q.push [:CAR, $&]
+        when /\Acdr/
+          @q.push [:CDR, $&]
+        when /\Aatom\?/, /\A'/
+          @q.push [:ATOM, $&]
+        when /\Apair\?/, /\A'/
+          @q.push [:ATOM, $&]
+        when /\Alist/
+          @q.push [:LIST, $&]
         when /\A[a-zA-Z_]+/
           @q.push [:VARIABLE, $&]
         when /\A"([^"]*)"/
@@ -296,7 +380,7 @@ vartbl = [ { } ]
 while true
   print 'alish> '
   str = gets.chop!
-  break if /q/i =~ str
+  break if /exit/i =~ str
   begin
     cls = parser.parse(str)
     res = cls.calc( vartbl )
@@ -304,11 +388,8 @@ while true
       cls.draw
     end
     if getVariableValue( "echo", vartbl ) != 0
-      if res.class == Closure
-        print "#<#closure #f>\n"
-      else
-        p res
-      end
+      printObject( res )
+      puts
     end
   rescue ParseError
     puts $!
