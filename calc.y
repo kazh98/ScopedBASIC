@@ -11,7 +11,8 @@ class Calcp
     left '%'
     left '+' '-'
     left '&'
-    left EQ
+    left '<' LE '>' GE
+    left EQ NE
     right '='
   preclow
 rule
@@ -24,7 +25,12 @@ rule
      | exp '/' exp { result = Node.new( "DIV", "OPR", val[0], val[2] ) }
      | exp '%' exp { result = Node.new( "MOD", "OPR", val[0], val[2] ) }
      | exp '&' exp { result = Node.new( "CAT", "OPR", val[0], val[2] ) }
+     | exp '<' exp { result = Node.new( "LT", "OPR", val[0], val[2] ) }
+     | exp LE  exp { result = Node.new( "LE", "OPR", val[0], val[2] ) }
+     | exp '>' exp { result = Node.new( "GT", "OPR", val[0], val[2] ) }
+     | exp GE  exp { result = Node.new( "GE", "OPR", val[0], val[2] ) }
      | exp EQ exp { result = Node.new( "EQ", "OPR", val[0], val[2] ) }
+     | exp NE exp { result = Node.new( "NE", "OPR", val[0], val[2] ) }
      | var '=' exp { result = Node.new( "ASSIGN", "OPR", val[0], val[2] ) }
      | '(' exp ')' { result = val[1] }
      | '-' trm =UMINUS { result = Node.new( "INV", "OPR", val[1], nil ) }
@@ -180,8 +186,18 @@ class Node
               right = right.to_s
             end
             return left + right
+          when "LT"
+            return @left.calc(var) < @right.calc(var)
+          when "LE"
+            return @left.calc(var) <= @right.calc(var)
+          when "GT"
+            return @left.calc(var) > @right.calc(var)
+          when "GE"
+            return @left.calc(var) >= @right.calc(var)
           when "EQ"
             return @left.calc(var) == @right.calc(var)
+          when "NE"
+            return @left.calc(var) != @right.calc(var)
           when "INV"
             return -@left.calc(var)
           when "CST"
@@ -251,8 +267,14 @@ end
           @q.push [:VARIABLE, $&]
         when /\A"([^"]*)"/
           @q.push [:STRING, $1]
+        when /\A<=/
+          @q.push [:LE, $&]
+        when /\A>=/
+          @q.push [:GE, $&]
         when /\A==/
           @q.push [:EQ, $&]
+        when /\A!=/
+          @q.push [:NE, $&]
         when /\A.|\n/o
           s = $&
           @q.push [s, s]
