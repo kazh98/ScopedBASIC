@@ -29,6 +29,7 @@ rule
      | '(' exp ')' { result = val[1] }
      | '-' trm =UMINUS { result = Node.new( "INV", "OPR", val[1], nil ) }
      | '&' exp =UCSTRING { result = Node.new( "CST", "OPR", val[1], nil ) }
+     | exp '(' pms ')' { result = Node.new( val[0], "CAL", val[2], nil ) }
      | trm
   trm: var
      | NUMBER      { result = Node.new( val[0], "LD_", nil, nil ) }
@@ -37,13 +38,11 @@ rule
      | ELSE        { result = Node.new( "ELSE", "ELSE", nil, nil ) }
      | '^' '(' ags ')' '(' exp ')' { result = Node.new( val[2], "LMB", val[5], nil ) }
      | COND '(' cds ')' { result = Node.new( val[2], "CND", nil, nil ) }
-     | VARIABLE '(' pms ')' { result = Node.new( val[0], "CAL", val[2], nil ) }
      | PRINT '(' target ')' { result = Node.new( nil, "PNT", val[2], nil ) }
   cds:             { result = [ ] }
      | cnd         { result = [ val[0] ] }
      | cds cnd     { result = val[0] << val[1] }
-  cnd: exp '(' target ')'     { result = Node.new( val[0], "CONDITION", val[2], nil ) }
-     | exp ':' '(' target ')' { result = Node.new( val[0], "CONDITION", val[3], nil ) }
+  cnd: exp ':' '(' target ')' { result = Node.new( val[0], "CONDITION", val[3], nil ) }
   pms: prm         { result = Node.new( val[0], "PRM", nil, nil ) }
   prm:             { result = [ ] }
      | exp         { result = [ val[ 0 ] ] }
@@ -127,7 +126,7 @@ class Node
           item.draw( indent + suffix, index + 1 < @page.size )
         }
         return
-      when "LMB"
+      when "LMB", "CAL"
         print indent + "+" + "lambda (" + @type + ")\n"
         @page.draw( indent + suffix, @left || @right )
       when "CONDITION"
@@ -203,14 +202,18 @@ class Node
         return Closure.new( self, var )
       when "CAL"
         lvar = { }
-        closure = getVariableValue( @page, var )
+        closure = @page.calc( var )
         lmb = closure.getLmb
         @left.getPage.each_with_index { |item, index|
           lvar[ lmb.getPage.getPage[ index ].getPage ] = item.calc( var )
         }
         return closure.run( lvar )
       when "PNT"
-        print @left.calc( var )
+        if @left.class == Closure
+          print "#<#closure #f>\n"
+        else
+          print @left.calc( var )
+        end
         return nil
       when "NOP"
         return nil
@@ -268,11 +271,8 @@ end
 
 parser = Calcp.new
 vartbl = [ { } ]
-puts 'type "Q" to quit.'
-puts
 while true
-  puts
-  print '? '
+  print 'alish> '
   str = gets.chop!
   break if /q/i =~ str
   begin
