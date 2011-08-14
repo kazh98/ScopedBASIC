@@ -7,5 +7,42 @@ Required:
   racc
 
 ------
+Scoped BASIC designed not to need Complex Sentence, For Syntax, While Syntax, Sub Routine Syntax, and other Control Syntax.
+
+Operators)
+  +         Add
+  -         Substract
+  *         Multiply
+  /         Divide
+  %, Mod    Modulo
+  &         Cast something to String and Concat Strings
+
+Environment Variable)
+  stree     If it is 0, syntax trees will not be printed.
+  echo      If it is 0, return values will not be printed.
+
+For example)
+;Print Strings
+print("Hogehoge\n") ;=> Hogehoge
+print(&3, "\n")     ;=> 3     (monomial& operator is abbreviation of `"" &`
+                    ;Monomal& operator means specified casting into string
+
+;False complex sentence
+cond(print("a"):() print("b"):() print("c"):() else:(print("\n")))
+
+;Factorial
+fact = ^(n)(cond(n==0:(1)else:(n*fact(n-1))))
+print(&fact(5), "\n") ;=> 120
+
+;Lambda Calculus
+plusX = ^(X)(^(n)(n+X))
+plusFive = plusX(5)
+print(&plusFive(3),"\n") ;=>8 (3+5=8
+
+call = ^(func, arg)(func(arg))
+hoge = ^(x)(print(x,"\n"))
+call(hoge, 3) ;=>3
+
+------
 Kazh.
 
