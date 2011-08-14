@@ -218,7 +218,7 @@ class Node
         @left.getPage.each { |item|
           printObject( item.calc(var) )
         }
-        return nil
+        return false
       when "CONS"
         return Pair.new( @left.calc(var), @right.calc(var) )
       when "CAR"
@@ -257,7 +257,7 @@ end
 
 class Calcp < Racc::Parser
 
-module_eval <<'..end calc.y modeval..id9de83a6223', 'calc.y', 318
+module_eval <<'..end calc.y modeval..idc890d41c57', 'calc.y', 318
   def initialize
     @var = { }
   end
@@ -318,7 +318,7 @@ module_eval <<'..end calc.y modeval..id9de83a6223', 'calc.y', 318
     @q.shift
   end
 
-..end calc.y modeval..id9de83a6223
+..end calc.y modeval..idc890d41c57
 
 ##### racc 1.4.5 generates ###
 

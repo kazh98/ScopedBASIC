@@ -278,7 +278,7 @@ class Node
         @left.getPage.each { |item|
           printObject( item.calc(var) )
         }
-        return nil
+        return false
       when "CONS"
         return Pair.new( @left.calc(var), @right.calc(var) )
       when "CAR"
