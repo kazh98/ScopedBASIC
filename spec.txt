@@ -1,0 +1,17 @@
+; Comment
+print "Hogehoge"
+add = ^( a, b ) (
+  a + b
+)
+print add ( 1, 2 ), "\n"        ; => 3
+
+zero? = ^( val ) (
+  val == 0
+)
+
+factorial = ^( n ) (
+  cond (
+    zero? ( n ):  ( 1 )
+    else       :  ( n * factorial ( n - 1 ) ) ) )
+print factorial ( 5 ), "\n"     ; => 120
+
