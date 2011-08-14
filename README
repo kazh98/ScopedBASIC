@@ -1,0 +1,10 @@
+This is the interpreter for BASIC like scripting language "Scoped BASIC".
+It was made by Kazh. at Security & Programming Camp 2011, IPA.
+
+Required:
+  ruby
+  racc
+
+------
+Kazh.
+
