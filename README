@@ -1,4 +1,5 @@
-This is the interpreter for BASIC like scripting language "Scoped BASIC".
+"Scoped BASIC" is the BASIC-like scripting language.
+This repository is the interpreter for Scoped BASIC.
 It was made by Kazh. at Security & Programming Camp 2011, IPA.
 
 Required:
