@@ -1,4 +1,4 @@
 #!/bin/sh
 
-/usr/bin/ruby "./calc.tab.rb"
+/usr/bin/ruby "./alish.tab.rb"
 
